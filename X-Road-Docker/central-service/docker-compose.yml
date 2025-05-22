@@ -1,0 +1,147 @@
+networks:
+  xroad-cs-net:
+    driver: bridge
+
+
+x-common: &common
+  restart: always
+  networks:
+    - xroad-cs-net
+  env_file:
+    - .env
+
+
+volumes:
+  mount-data-cs-db: null
+  mount-data-cs-config: null
+  mount-data-cs-backup: null
+  mount-data-ssm-db: null
+  mount-data-ssm-config: null
+  mount-data-ssm-backup: null
+
+services:
+  ca:
+    build:
+      context: ./ca
+      dockerfile: Dockerfile
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/ca/certs" ]
+    ports:
+      - 8887:8887
+      - 8888:8888
+      - 8899:8899
+  cs:
+    build:
+      context: ./cs
+      dockerfile: Dockerfile
+      args:
+        - XROAD_TOKEN_PIN=${CS_TOKEN_PIN}
+        - XROAD_ADMIN_USER=${CS_ADMIN_USER}
+        - XROAD_ADMIN_PASSWORD=${CS_ADMIN_USER_PASSWORD}
+    container_name: cs
+    <<: *common
+    depends_on:
+      ca:
+        condition: service_healthy
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    ports:
+      - 80:80
+      - ${CS_PORT}:4000
+      - 4001:4001
+      - 4002:4002
+    volumes:
+      - mount-data-cs-db:/var/lib/postgresql/14/main
+      - mount-data-cs-config:/etc/xroad
+      - mount-data-cs-backup:/var/lib/xroad
+  ssm-db:
+    image: postgres:12
+    container_name: ssm-db
+    <<: *common
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=${SSM_DB_PASSWORD}
+      - POSTGRES_USER=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 6666:5432
+    volumes:
+      - mount-data-ssm-db:/var/lib/postgresql/12/main
+  ssm:
+    build:
+      context: ./ssm
+      dockerfile: Dockerfile
+    container_name: ssm
+    <<: *common
+    depends_on:
+      ca:
+        condition: service_healthy
+      ssm-db:
+        condition: service_healthy
+    environment:
+      - XROAD_TOKEN_PIN=${SSM_TOKEN_PIN}
+      - XROAD_ADMIN_USER=${SSM_ADMIN_USER}
+      - XROAD_ADMIN_PASSWORD=${SSM_ADMIN_USER_PASSWORD}
+      - XROAD_LOG_LEVEL=${SSM_LOG_LEVEL}
+      - XROAD_DB_HOST=${SSM_DB_HOST}
+      - XROAD_DB_PORT=${SSM_DB_PORT}
+      - XROAD_DB_PWD=${SSM_DB_PASSWORD}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    ports: 
+      - ${SSM_PORT}:4000
+      - 5588:5588
+      - 443:8443
+      - 5500:5500
+      - 5577:5577
+    volumes:
+      - mount-data-ssm-config:/etc/xroad
+      - mount-data-ssm-backup:/var/lib/xroad
+  cs-init:
+    build:
+      context: ./init
+      dockerfile: Dockerfile
+      args:
+        - CA_HOST=${CA_HOST}
+        - CS_HOST=${CS_HOST}
+        - CS_PORT=${CS_PORT}
+        - CS_INSTANCE_IDENTIFIER=${CS_INSTANCE_IDENTIFIER}
+        - CS_ADMIN_USER=${CS_ADMIN_USER}
+        - CS_ADMIN_USER_PASSWORD=${CS_ADMIN_USER_PASSWORD}
+        - CS_TOKEN_PIN=${CS_TOKEN_PIN}
+        - SSM_HOST=${SSM_HOST}
+        - SSM_PORT=${SSM_PORT}
+        - SSM_MEMBER_CLASS=${SSM_MEMBER_CLASS}
+        - SSM_MEMBER_CODE=${SSM_MEMBER_CODE}
+        - SSM_MEMBER_NAME=${SSM_MEMBER_NAME}
+        - SSM_SECURITY_SERVER_CODE=${SSM_SECURITY_SERVER_CODE}
+        - SSM_ADMIN_USER=${SSM_ADMIN_USER}
+        - SSM_ADMIN_USER_PASSWORD=${SSM_ADMIN_USER_PASSWORD}
+        - SSM_TOKEN_PIN=${SSM_TOKEN_PIN}
+    container_name: cs-init
+    <<: *common
+    restart: no
+    depends_on:
+      ca:
+        condition: service_healthy
+      cs:
+        condition: service_healthy
+      ssm:
+        condition: service_healthy
+    command: --insecure --variables-file /hurl-src/vars.env --file-root /hurl-files /hurl-src/setup.hurl --very-verbose --retry 18 --retry-interval 20000

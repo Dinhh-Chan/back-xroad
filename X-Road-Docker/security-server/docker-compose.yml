@@ -1,0 +1,90 @@
+networks:
+  xroad-ss-net:
+    driver: bridge
+
+
+x-common: &common
+  restart: always
+  networks:
+    - xroad-ss-net
+  env_file:
+    - .env
+
+
+volumes:
+  mount-data-ss-db: null
+  mount-data-ss-config: null
+  mount-data-ss-backup: null
+
+services:
+  ss-db:
+    image: postgres:12
+    container_name: ss-db
+    <<: *common
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=${SS_DB_PASSWORD}
+      - POSTGRES_USER=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5555:5432
+    volumes:
+      - mount-data-ss-db:/var/lib/postgresql/12/main
+  ss:
+    build:
+      context: ./ss
+      dockerfile: Dockerfile
+    container_name: ss
+    <<: *common
+    depends_on:
+      ss-db:
+        condition: service_healthy
+    environment:
+      - XROAD_TOKEN_PIN=${SS_TOKEN_PIN}
+      - XROAD_ADMIN_USER=${SS_ADMIN_USER}
+      - XROAD_ADMIN_PASSWORD=${SS_ADMIN_USER_PASSWORD}
+      - XROAD_LOG_LEVEL=${SS_LOG_LEVEL}
+      - XROAD_DB_HOST=${SS_DB_HOST}
+      - XROAD_DB_PORT=${SS_DB_PORT}
+      - XROAD_DB_PWD=${SS_DB_PASSWORD}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    ports: 
+      - ${SS_PORT}:4000
+      # - 5588:5588
+      # - 443:8443
+      # - 5500:5500
+      # - 5577:5577
+    volumes:
+      - mount-data-ss-config:/etc/xroad
+      - mount-data-ss-backup:/var/lib/xroad
+  ss-init:
+    build:
+      context: ./init
+      dockerfile: Dockerfile
+      args:
+        - CA_HOST=${CA_HOST}
+        - CS_HOST=${CS_HOST}
+        - CS_INSTANCE_IDENTIFIER=${CS_INSTANCE_IDENTIFIER}
+        - SS_HOST=${SS_HOST}
+        - SS_PORT=${SS_PORT}
+        - SS_MEMBER_CLASS=${SS_MEMBER_CLASS}
+        - SS_MEMBER_CODE=${SS_MEMBER_CODE}
+        - SS_MEMBER_NAME=${SS_MEMBER_NAME}
+        - SS_SECURITY_SERVER_CODE=${SS_SECURITY_SERVER_CODE}
+        - SS_ADMIN_USER=${SS_ADMIN_USER}
+        - SS_ADMIN_USER_PASSWORD=${SS_ADMIN_USER_PASSWORD}
+        - SS_TOKEN_PIN=${SS_TOKEN_PIN}
+    container_name: ss-init
+    <<: *common
+    restart: no
+    depends_on:
+      ss:
+        condition: service_healthy
+    command: --insecure --variables-file /hurl-src/vars.env --file-root /hurl-files /hurl-src/setup.hurl --very-verbose --retry 18 --retry-interval 20000
