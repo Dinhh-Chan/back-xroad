@@ -6,7 +6,7 @@ import io
 from app.core.config import settings
 from app.utils.xroad_client import xroad_client, create_xroad_client
 
-router = APIRouter(prefix="/xroad-cs", tags=["X-Road Central Server"])
+router = APIRouter(prefix="/xroad-cs", tags=["X-Road Central Server Backup"])
 
 # Helper function to get XRoad client
 def get_xroad_client(custom_base_url: Optional[str] = None,
