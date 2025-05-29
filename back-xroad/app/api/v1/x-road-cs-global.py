@@ -71,13 +71,7 @@ async def get_global_groups(client=Depends(get_xroad_client)):
 
 @router.post("/",
             summary="Create global group",
-            description="""Thêm mới một nhóm toàn cầu với mã nhóm và mô tả
-            {
-            "code": "groupcode",
-            "description": "description"
-        }
-            
-            """)
+            description="Thêm mới một nhóm toàn cầu với mã nhóm và mô tả")
 async def create_global_group(
     group_data: Dict[str, str],
     client=Depends(get_xroad_client)
@@ -309,7 +303,7 @@ async def view_global_group_members(
     
     Parameters:
         - group_code: Code of the global group
-        - search_criteria: JSON object with search and pagination parameters
+        - search_criteria: JSON object with search and pagination parameters (Request Body)
     
     Request body example:
         {
@@ -355,6 +349,7 @@ async def view_global_group_members(
             }
         }
     """
+    # Truyền search_criteria như JSON data trong request body
     result = await client.post(f"/global-groups/{group_code}/members", data=search_criteria)
     
     if result.get("status_code", 200) >= 400:
