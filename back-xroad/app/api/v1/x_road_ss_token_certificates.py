@@ -1,4 +1,3 @@
-# app/api/v1/token_certificates.py
 from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from typing import Optional, List, Dict, Any

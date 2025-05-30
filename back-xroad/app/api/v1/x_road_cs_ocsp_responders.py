@@ -1,4 +1,3 @@
-# app/api/v1/ocsp_responders.py
 from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File, Form
 from typing import Optional, List, Dict, Any
 from app.core.config import settings

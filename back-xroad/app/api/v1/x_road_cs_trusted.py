@@ -1,4 +1,3 @@
-# app/api/v1/trusted_anchors.py
 from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File
 from fastapi.responses import StreamingResponse
 from typing import Optional, List, Dict, Any

@@ -1,4 +1,3 @@
-# app/api/v1/global_groups.py
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List, Dict, Any
 from datetime import datetime

@@ -1,4 +1,3 @@
-# app/api/v1/tokens.py
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List, Dict, Any
 from app.core.config import settings

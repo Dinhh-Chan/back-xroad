@@ -1,4 +1,3 @@
-# app/api/v1/member_classes.py
 from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List, Dict, Any
 from app.core.config import settings
