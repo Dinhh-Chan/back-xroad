@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from typing import Optional, Dict, Any, List
 import io
 from app.core.config import settings
-from app.utils.xroad_client import xroad_client, create_xroad_client
+from app.utils.xroad_client_cs import xroad_client, create_xroad_client
 
 router = APIRouter(prefix="/xroad-cs", tags=["X-Road Central Server Backup"])
 

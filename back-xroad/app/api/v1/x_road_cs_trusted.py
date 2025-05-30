@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from typing import Optional, List, Dict, Any
 import io
 from app.core.config import settings
-from app.utils.xroad_client import xroad_client, create_xroad_client
+from app.utils.xroad_client_cs import xroad_client, create_xroad_client
 from app.schemas.x_road_config import XRoadConfigParams, XRoadEnvironment
 
 router = APIRouter(prefix="/trusted-anchors", tags=["X-Road Central Server - Trusted Anchors"])

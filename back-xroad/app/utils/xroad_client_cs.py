@@ -19,7 +19,7 @@ class XRoadClient:
         # Import here to avoid circular import
         
         self.base_url = (base_url or settings.XROAD_BASE_URL_CS).rstrip('/')
-        self.api_key = api_key or settings.XROAD_API_KEY
+        self.api_key = api_key or settings.XROAD_API_KEY_CS
         self.timeout = timeout or settings.XROAD_TIMEOUT
         self.headers = {
             "Authorization": f"X-Road-ApiKey token={self.api_key}",

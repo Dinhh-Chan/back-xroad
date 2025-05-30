@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File, Form
 from typing import Optional, List, Dict, Any
 from app.core.config import settings
-from app.utils.xroad_client import xroad_client, create_xroad_client
+from app.utils.xroad_client_cs import xroad_client, create_xroad_client
 from app.schemas.x_road_config import XRoadConfigParams, XRoadEnvironment
 
 router = APIRouter(tags=["X-Road Central Server - Intermediate"])

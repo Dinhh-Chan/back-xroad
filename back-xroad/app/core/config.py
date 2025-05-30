@@ -28,9 +28,13 @@ class Settings(BaseSettings):
     KEYCLOAK_VERIFY: Optional[bool] = os.environ.get("KEYCLOAK_VERIFY", "False").lower() == "true"
     GOOGLE_CLIENT_ID: Optional[str] = os.environ.get("GOOGLE_CLIENT_ID", None)
     
-    # X-Road Settings
-    XROAD_BASE_URL_CS: str = os.environ.get("XROAD_BASE_URL", "https://192.168.30.195:4000")
-    XROAD_API_KEY: str = os.environ.get("XROAD_API_KEY", "d54a4bfe-104c-4c39-87a4-5b847fa6680d")
+    # X-Road CS Settings
+    XROAD_BASE_URL_CS: str = os.environ.get("XROAD_BASE_URL_CS", "https://192.168.30.195:4000")
+    XROAD_API_KEY_CS: str = os.environ.get("XROAD_API_KEY_CS", "d54a4bfe-104c-4c39-87a4-5b847fa6680d")
+    XROAD_TIMEOUT: int = int(os.environ.get("XROAD_TIMEOUT", "30"))
+    # X-Road SS Settings
+    XROAD_BASE_URL_SS: str = os.environ.get("XROAD_BASE_URL_SS", "https://192.168.30.195:4005")
+    XROAD_API_KEY_SS: str = os.environ.get("XROAD_API_KEY_SS", "1da13f97-803f-4019-86d9-a8a778a6d49a")
     XROAD_TIMEOUT: int = int(os.environ.get("XROAD_TIMEOUT", "30"))
     
     # X-Road Multiple Environment Support
@@ -52,12 +56,12 @@ class Settings(BaseSettings):
             prefix = env_prefix.upper()
             return {
                 "base_url": getattr(self, f"XROAD_{prefix}_BASE_URL", None) or self.XROAD_BASE_URL,
-                "api_key": getattr(self, f"XROAD_{prefix}_API_KEY", None) or self.XROAD_API_KEY,
+                "api_key": getattr(self, f"XROAD_{prefix}_API_KEY", None) or self.XROAD_API_KEY_CS,
                 "timeout": getattr(self, f"XROAD_{prefix}_TIMEOUT", None) or self.XROAD_TIMEOUT
             }
         return {
             "base_url": self.XROAD_BASE_URL,
-            "api_key": self.XROAD_API_KEY,
+            "api_key": self.XROAD_API_KEY_CS,
             "timeout": self.XROAD_TIMEOUT
         }
     
